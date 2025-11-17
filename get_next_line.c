@@ -3,65 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nilsdruon <nilsdruon@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/04 13:55:16 by nildruon          #+#    #+#             */
-/*   Updated: 2025/11/12 18:27:49 by nildruon         ###   ########.fr       */
+/*   Updated: 2025/11/17 22:33:22 by nilsdruon        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-/* char	*save_into_buff(int fd, char	**remainder, int *buff_size)
-{
-	char	buffer[BUFFER_SIZE + 1];
-	char	*temp_buff;
-	ssize_t	reader;
-	int		i;
-
-	i = 0;
-	temp_buff = malloc(BUFFER_SIZE * (*buff_size) + 1);
-	if(!temp_buff)
-		return(NULL);
-	reader = read(fd, buffer, BUFFER_SIZE);
-	while(reader != 0)
-	{
-		free(temp_buff);
-		temp_buff = malloc(BUFFER_SIZE * (*buff_size) + 1);
-		if(!temp_buff)
-			return(NULL);
-		while(i < *buff_size)
-		{
-			temp_buff[i] = buffer[i];
-			i++;
-		}
-		reader = read(fd, buffer, BUFFER_SIZE);
-		*buff_size *= 2;
-	}
-}
-
-char	*get_next_line(int fd)
-{
-	static char	*buffer;
-	static char		*current_pos;
-	char			*nxt_line;
-	int				*buff_size;
-	int				bool_end_of_line;
-
-	bool_end_of_line = 0;
-	buff_size = 0;
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	while (!bool_end_of_line)
-	{
-		nxt_line = save_into_buff(fd, &current_pos,
-		 &bool_end_of_line, &buff_size);
-		if(!nxt_line)
-			return (NULL);
-		buff_size++;
-	}
-	return (nxt_line);
-} */
 
 char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 {
@@ -78,7 +27,7 @@ char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 	*remainder = malloc((buff_size - i) + 1);
 	if (!*remainder)
 		return (NULL);
-	line = malloc(i + 1);
+	line = malloc(i + 2);
 	if (!line)
 	{
 		free(*remainder);
@@ -89,33 +38,91 @@ char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 		line[r] = buffer[r];
 		r++;
 	}
+	if(buffer[i] == '\n')
+	{
+		line[r] = '\n';
+		r++;
+	}
 	line[r] = '\0';
 	r = 0;
+	i++;
 	while (buffer[i])
 		(*remainder)[r++] = buffer[i++];
 	(*remainder)[r] = '\0';
 	return (line);
 }
 
+char	*alloc_for_gnl_return(char **remainder, int fd)
+{
+	int		bytes;
+	ssize_t	reader;
+	char 	*currentbuffer;
+	char 	*temp_buffer;
+	char	*line;
 
+	reader = 1;
+	bytes = BUFFER_SIZE;
+	currentbuffer = ft_calloc(bytes + 1, sizeof(char));
+	if (!currentbuffer)
+		return (NULL);
+	while (!(line = scan_for_new_l(currentbuffer, remainder, bytes)))
+	{
+		temp_buffer = ft_calloc(bytes + 1, sizeof(char));
+		if (!temp_buffer)
+			return (NULL);
+		reader = read(fd, temp_buffer, bytes);
+		if (reader == -1)
+		{
+			free(currentbuffer);
+			free(temp_buffer);
+			return (NULL);
+		}
+		temp_buffer[reader] = '\0';
+		currentbuffer = update_buffer(currentbuffer, temp_buffer);
+		free(temp_buffer);
+		if (reader == 0)
+			return (currentbuffer);
+		bytes *= 2;
+	}
+	return (line);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*remainder = NULL;
+	char *line;
+	if(remainder)
+	{
+		line = scan_for_new_l(remainder, &remainder, ft_strlen(remainder));
+		return (line);
+	}
+	return (alloc_for_gnl_return(&remainder, fd));
+}
 #include <stdio.h>
-#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 int main(void)
 {
-    char buffer[] = "Hello world\nThis is a test\nAnother line";
-    char *remainder = NULL;
-    char *line;
+    int fd = open("test", O_RDONLY);
+    int i = 0;
 
-    int buff_size = strlen(buffer);
-
-    // First line
-    line = scan_for_new_l(buffer, &remainder, buff_size);
-    if (line)
+    if (fd < 0)
     {
-        printf("Line 1: %s\n", line);
-        printf("Remainder 1: %s\n", remainder ? remainder : "(null)\n");
-        free(line);
+        perror("open failed");
+        return 1;
     }
+
+    while (i < 6)
+    {
+        char *line = get_next_line(fd);
+        if (!line)
+            break;
+        printf("%s", line);
+        free(line);
+        i++;
+    }
+
+    close(fd);
     return 0;
 }
