@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nilsdruon <nilsdruon@student.42.fr>        +#+  +:+       +#+        */
+/*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/04 13:55:16 by nildruon          #+#    #+#             */
-/*   Updated: 2025/11/17 22:33:22 by nilsdruon        ###   ########.fr       */
+/*   Updated: 2025/11/18 18:28:36 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 		line[r] = buffer[r];
 		r++;
 	}
-	if(buffer[i] == '\n')
+	if (buffer[i] == '\n')
 	{
 		line[r] = '\n';
 		r++;
@@ -52,37 +52,46 @@ char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 	return (line);
 }
 
+int alloc_for_gnl_return_help(char **buffer, ssize_t *reader, int fd)
+{	
+	char *tmp_buffer;
+	
+	tmp_buffer = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
+	if (!tmp_buffer)
+		return (0);
+	*reader = read(fd, tmp_buffer, BUFFER_SIZE);
+	if (*reader == -1)
+	{
+		free(*buffer);
+		free(tmp_buffer);
+		return (-1);
+	}
+	tmp_buffer[*reader] = '\0';
+	*buffer = update_buffer(*buffer, tmp_buffer);
+	free(tmp_buffer);
+	if (*reader == 0)
+		return (0);
+	return (1);
+}
+
 char	*alloc_for_gnl_return(char **remainder, int fd)
 {
-	int		bytes;
 	ssize_t	reader;
 	char 	*currentbuffer;
-	char 	*temp_buffer;
 	char	*line;
+	int		status;
 
 	reader = 1;
-	bytes = BUFFER_SIZE;
-	currentbuffer = ft_calloc(bytes + 1, sizeof(char));
+	currentbuffer = ft_calloc(1, sizeof(char));
 	if (!currentbuffer)
 		return (NULL);
-	while (!(line = scan_for_new_l(currentbuffer, remainder, bytes)))
+	while (!(line = scan_for_new_l(currentbuffer, remainder, ft_strlen(currentbuffer))))
 	{
-		temp_buffer = ft_calloc(bytes + 1, sizeof(char));
-		if (!temp_buffer)
+		status = alloc_for_gnl_return_help(&currentbuffer, &reader, fd);
+		if(status == 0)
+			return(currentbuffer);
+		if(status == -1)
 			return (NULL);
-		reader = read(fd, temp_buffer, bytes);
-		if (reader == -1)
-		{
-			free(currentbuffer);
-			free(temp_buffer);
-			return (NULL);
-		}
-		temp_buffer[reader] = '\0';
-		currentbuffer = update_buffer(currentbuffer, temp_buffer);
-		free(temp_buffer);
-		if (reader == 0)
-			return (currentbuffer);
-		bytes *= 2;
 	}
 	return (line);
 }
