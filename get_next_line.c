@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/04 13:55:16 by nildruon          #+#    #+#             */
-/*   Updated: 2025/11/18 18:28:36 by nildruon         ###   ########.fr       */
+/*   Updated: 2025/11/19 17:28:55 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 {
-	int		i;
-	int		r;
+	int	i;
+	int	r;
 	char	*line;
 
 	i = 0;
@@ -24,10 +24,12 @@ char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
 		i++;
 	if (!buffer[i])
 		return (NULL);
+	line = malloc(i + ft_strlen(*remainder) + 2);
+	//cpy remainder to line if remainder exist
+	//free old remainder (otherwise leak)
 	*remainder = malloc((buff_size - i) + 1);
 	if (!*remainder)
 		return (NULL);
-	line = malloc(i + 2);
 	if (!line)
 	{
 		free(*remainder);
@@ -89,7 +91,14 @@ char	*alloc_for_gnl_return(char **remainder, int fd)
 	{
 		status = alloc_for_gnl_return_help(&currentbuffer, &reader, fd);
 		if(status == 0)
+		{
+			if(currentbuffer[0] == '\0')
+			{
+				free(currentbuffer);
+				return(NULL);
+			}
 			return(currentbuffer);
+		}
 		if(status == -1)
 			return (NULL);
 	}
@@ -100,10 +109,14 @@ char	*get_next_line(int fd)
 {
 	static char	*remainder = NULL;
 	char *line;
-	if(remainder)
+	
+	if(fd < 0 || BUFFER_SIZE <= 0)
+		return(NULL);
+	if(remainder && ft_strlen(remainder))
 	{
 		line = scan_for_new_l(remainder, &remainder, ft_strlen(remainder));
-		return (line);
+		if(line)
+			return (line);
 	}
 	return (alloc_for_gnl_return(&remainder, fd));
 }
@@ -114,7 +127,7 @@ char	*get_next_line(int fd)
 int main(void)
 {
     int fd = open("test", O_RDONLY);
-    int i = 0;
+	char *line;
 
     if (fd < 0)
     {
@@ -122,15 +135,12 @@ int main(void)
         return 1;
     }
 
-    while (i < 6)
+    while ((line = get_next_line(fd)))
     {
-        char *line = get_next_line(fd);
-        if (!line)
-            break;
         printf("%s", line);
         free(line);
-        i++;
     }
+	free(line);
 
     close(fd);
     return 0;
