@@ -5,62 +5,20 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/04 13:55:13 by nildruon          #+#    #+#             */
-/*   Updated: 2025/11/18 18:34:31 by nildruon         ###   ########.fr       */
+/*   Created: 2025/11/28 11:30:43 by nildruon          #+#    #+#             */
+/*   Updated: 2025/12/06 17:04:44 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-void	*ft_calloc(size_t nmemb, size_t size)
-{
-	unsigned char	*ptr;
-	size_t		i;
-
-	if (nmemb == 0 || size == 0)
-	{
-		ptr = malloc(1);
-		if (!ptr)
-			return (NULL);
-		ptr[0] = '\0';
-		return (ptr);
-	}
-	if (SIZE_MAX / size <= nmemb)
-		return (NULL);
-	ptr = malloc(nmemb * size);
-	if (!ptr)
-		return (NULL);
-	i = 0;
-	while (i < nmemb * size)
-	{
-		ptr[i] = '\0';
-		i++;
-	}
-	return (ptr);
-}
-
-void	*ft_memcpy(void *dest, const void *src, size_t n)
-{
-	unsigned char	*d;
-	unsigned char	*s;
-	size_t			i;
-
-	d = (unsigned char *)dest;
-	s = (unsigned char *)src;
-	i = 0;
-	while (i < n)
-	{
-		d[i] = s[i];
-		i++;
-	}
-	return (dest);
-}
 
 size_t	ft_strlen(const char *s)
 {
 	size_t	size;
 
 	size = 0;
+	if (!s)
+		return (0);
 	while (s[size])
 	{
 		size++;
@@ -68,29 +26,75 @@ size_t	ft_strlen(const char *s)
 	return (size);
 }
 
-char* update_buffer(char *buffer ,char *temp_buffer)
+char	*ft_strdup(const char *s)
 {
-	char *updated_buffer;
-	int buffer_len;
-	int temp_buffer_len;
-	int i;
+	size_t	len;
+	char	*cpy;
+	size_t	i;
 
-	buffer_len = ft_strlen(buffer);
-	temp_buffer_len = ft_strlen(temp_buffer);
-	updated_buffer = ft_calloc(sizeof(char), buffer_len + temp_buffer_len + 1);
-	if(!updated_buffer)
+	len = ft_strlen(s);
+	cpy = (char *)malloc(len + 1);
+	if (!cpy)
 		return (NULL);
 	i = 0;
-	while(i < buffer_len)
+	while (i <= len)
 	{
-		updated_buffer[i] = buffer[i];
+		cpy[i] = s[i];
 		i++;
 	}
-	free(buffer);
-	while (i < buffer_len + temp_buffer_len)
+	return (cpy);
+}
+
+char	*read_buffer(int *read_r, int fd)
+{
+	char	*buffer;
+	char	*result;
+
+	buffer = malloc(BUFFER_SIZE + 1);
+	if (!buffer)
 	{
-		updated_buffer[i] = temp_buffer[i - buffer_len];
-		i++;	
+		*read_r = -1;
+		return (NULL);
 	}
-	return (updated_buffer);
+	*read_r = read(fd, buffer, BUFFER_SIZE);
+	if (*read_r <= 0)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	buffer[*read_r] = '\0';
+	result = ft_strdup(buffer);
+	free(buffer);
+	return (result);
+}
+
+int	found_new_line(char *str)
+{
+	size_t	i;
+
+	if (!str)
+		return (0);
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\n')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+void	extract_line_help(char *buffer, char *line, char **remainder, int i)
+{
+	if (buffer[i] == '\n')
+	{
+		line[i] = '\n';
+		line[i + 1] = '\0';
+		*remainder = ft_strdup(buffer + i + 1);
+	}
+	else
+	{
+		line[i] = '\0';
+		*remainder = NULL;
+	}
 }

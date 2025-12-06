@@ -5,143 +5,98 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/11/04 13:55:16 by nildruon          #+#    #+#             */
-/*   Updated: 2025/11/19 17:28:55 by nildruon         ###   ########.fr       */
+/*   Created: 2025/11/28 11:30:43 by nildruon          #+#    #+#             */
+/*   Updated: 2025/12/06 18:50:47 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*scan_for_new_l(char *buffer, char **remainder, int buff_size)
+static char	*extract_line(char	*buffer, char	**remainder)
 {
-	int	i;
-	int	r;
 	char	*line;
+	int		i;
 
 	i = 0;
-	r = 0;
 	while (buffer[i] && buffer[i] != '\n')
 		i++;
-	if (!buffer[i])
-		return (NULL);
-	line = malloc(i + ft_strlen(*remainder) + 2);
-	//cpy remainder to line if remainder exist
-	//free old remainder (otherwise leak)
-	*remainder = malloc((buff_size - i) + 1);
-	if (!*remainder)
-		return (NULL);
+	line = malloc(i + 2);
 	if (!line)
+		return (NULL);
+	i = 0;
+	while (buffer[i] && buffer[i] != '\n')
+	{
+		line[i] = buffer[i];
+		i++;
+	}
+	extract_line_help(buffer, line, remainder, i);
+	free(buffer);
+	return (line);
+}
+
+static char	*ft_strjoin(char *buffer, char **remainder)
+{
+	char	*concant;
+	int		buffer_l;
+	int		remainder_len;
+	int		i;
+
+	if (!*remainder)
+		return (ft_strdup(buffer));
+	buffer_l = ft_strlen(buffer);
+	remainder_len = ft_strlen(*remainder);
+	concant = malloc(buffer_l + remainder_len + 1);
+	if (!concant)
+		return (NULL);
+	i = 0;
+	while ((*remainder)[i])
+	{
+		concant[i] = (*remainder)[i];
+		i++;
+	}
+	buffer_l = 0;
+	while (buffer[buffer_l])
+		concant[i++] = buffer[buffer_l++];
+	concant[i] = '\0';
+	free(*remainder);
+	*remainder = NULL;
+	return (concant);
+}
+
+static char	*free_and_return(char **remainder)
+{
+	if (!*remainder || !**remainder)
 	{
 		free(*remainder);
+		*remainder = NULL;
 		return (NULL);
 	}
-	while (r < i)
-	{
-		line[r] = buffer[r];
-		r++;
-	}
-	if (buffer[i] == '\n')
-	{
-		line[r] = '\n';
-		r++;
-	}
-	line[r] = '\0';
-	r = 0;
-	i++;
-	while (buffer[i])
-		(*remainder)[r++] = buffer[i++];
-	(*remainder)[r] = '\0';
-	return (line);
-}
-
-int alloc_for_gnl_return_help(char **buffer, ssize_t *reader, int fd)
-{	
-	char *tmp_buffer;
-	
-	tmp_buffer = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
-	if (!tmp_buffer)
-		return (0);
-	*reader = read(fd, tmp_buffer, BUFFER_SIZE);
-	if (*reader == -1)
-	{
-		free(*buffer);
-		free(tmp_buffer);
-		return (-1);
-	}
-	tmp_buffer[*reader] = '\0';
-	*buffer = update_buffer(*buffer, tmp_buffer);
-	free(tmp_buffer);
-	if (*reader == 0)
-		return (0);
-	return (1);
-}
-
-char	*alloc_for_gnl_return(char **remainder, int fd)
-{
-	ssize_t	reader;
-	char 	*currentbuffer;
-	char	*line;
-	int		status;
-
-	reader = 1;
-	currentbuffer = ft_calloc(1, sizeof(char));
-	if (!currentbuffer)
-		return (NULL);
-	while (!(line = scan_for_new_l(currentbuffer, remainder, ft_strlen(currentbuffer))))
-	{
-		status = alloc_for_gnl_return_help(&currentbuffer, &reader, fd);
-		if(status == 0)
-		{
-			if(currentbuffer[0] == '\0')
-			{
-				free(currentbuffer);
-				return(NULL);
-			}
-			return(currentbuffer);
-		}
-		if(status == -1)
-			return (NULL);
-	}
-	return (line);
+	return (*remainder);
 }
 
 char	*get_next_line(int fd)
 {
 	static char	*remainder = NULL;
-	char *line;
-	
-	if(fd < 0 || BUFFER_SIZE <= 0)
-		return(NULL);
-	if(remainder && ft_strlen(remainder))
+	char		*line;
+	int			r;
+
+	r = 1;
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	line = NULL;
+	while (!found_new_line(remainder) && r > 0)
 	{
-		line = scan_for_new_l(remainder, &remainder, ft_strlen(remainder));
-		if(line)
-			return (line);
+		line = read_buffer(&r, fd);
+		if (r <= 0)
+			break ;
+		if (!line)
+			break ;
+		remainder = ft_strjoin(line, &remainder);
+		free(line);
+		if (!remainder)
+			break ;
 	}
-	return (alloc_for_gnl_return(&remainder, fd));
-}
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-int main(void)
-{
-    int fd = open("test", O_RDONLY);
-	char *line;
-
-    if (fd < 0)
-    {
-        perror("open failed");
-        return 1;
-    }
-
-    while ((line = get_next_line(fd)))
-    {
-        printf("%s", line);
-        free(line);
-    }
-	free(line);
-
-    close(fd);
-    return 0;
+	if (!free_and_return(&remainder))
+		return (NULL);
+	return (extract_line(remainder, &remainder));
 }
