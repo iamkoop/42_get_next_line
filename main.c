@@ -1,31 +1,42 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/10 14:21:00 by nildruon          #+#    #+#             */
+/*   Updated: 2026/03/10 14:25:39 by nildruon         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "get_next_line.h"
 
-
-int main(void)
+int	main(void)
 {
-    int fd = open("test", O_RDONLY);
-    int i = 0;
-    char *line;
+	int		fd;
+	int		i;
+	char	*line;
 
-    if (fd < 0)
-    {
-        perror("open failed");
-        return 1;
-    }
-
-    while (i < 10759)
-    {
-        line = get_next_line(fd);
-        if (!line)
-            break;
-        printf("%s", line);
-        free(line);
-        i++;
-    }
-
-    close(fd);
-    return 0;
+	fd = open("test", O_RDONLY);
+	i = 0;
+	if (fd < 0)
+	{
+		perror("open failed");
+		return (1);
+	}
+	while (i < 10759)
+	{
+		line = get_next_line(fd);
+		if (!line)
+			break ;
+		printf("%s", line);
+		free(line);
+		i++;
+	}
+	close(fd);
+	return (0);
 }

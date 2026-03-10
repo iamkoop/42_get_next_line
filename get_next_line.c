@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/28 11:30:43 by nildruon          #+#    #+#             */
-/*   Updated: 2025/12/06 18:50:47 by nildruon         ###   ########.fr       */
+/*   Updated: 2026/03/10 14:16:19 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static char	*extract_line(char	*buffer, char	**remainder)
 		i++;
 	line = malloc(i + 2);
 	if (!line)
-		return (NULL);
+		return (free(buffer), *remainder = NULL, NULL);
 	i = 0;
 	while (buffer[i] && buffer[i] != '\n')
 	{
@@ -30,6 +30,8 @@ static char	*extract_line(char	*buffer, char	**remainder)
 		i++;
 	}
 	extract_line_help(buffer, line, remainder, i);
+	if (buffer[i] == '\n' && !*remainder)
+		return (free(line), free(buffer), NULL);
 	free(buffer);
 	return (line);
 }
@@ -42,12 +44,12 @@ static char	*ft_strjoin(char *buffer, char **remainder)
 	int		i;
 
 	if (!*remainder)
-		return (ft_strdup(buffer));
+		return (concant = ft_strdup(buffer));
 	buffer_l = ft_strlen(buffer);
 	remainder_len = ft_strlen(*remainder);
 	concant = malloc(buffer_l + remainder_len + 1);
 	if (!concant)
-		return (NULL);
+		return (free(*remainder),*remainder = NULL, NULL);
 	i = 0;
 	while ((*remainder)[i])
 	{
