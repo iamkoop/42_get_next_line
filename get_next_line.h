@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/04 13:55:28 by nildruon          #+#    #+#             */
-/*   Updated: 2025/12/06 16:43:19 by nildruon         ###   ########.fr       */
+/*   Updated: 2026/03/10 19:21:23 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #  define BUFFER_SIZE 42
 # endif
 
-char	*get_next_line(int fd);
+char	*get_next_line(int fd, int quit_before_end);
 size_t	ft_strlen(const char *s);
 char	*ft_strdup(const char *s);
 char	*read_buffer(int *read_r, int fd);

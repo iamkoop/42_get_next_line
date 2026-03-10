@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 14:21:00 by nildruon          #+#    #+#             */
-/*   Updated: 2026/03/10 14:25:39 by nildruon         ###   ########.fr       */
+/*   Updated: 2026/03/10 19:21:34 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int	main(void)
 	}
 	while (i < 10759)
 	{
-		line = get_next_line(fd);
+		line = get_next_line(fd,0);
 		if (!line)
 			break ;
 		printf("%s", line);
