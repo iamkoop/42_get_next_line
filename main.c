@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 14:21:00 by nildruon          #+#    #+#             */
-/*   Updated: 2026/03/10 19:22:02 by nildruon         ###   ########.fr       */
+/*   Updated: 2026/03/11 12:07:07 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,16 @@ int	main(void)
 		perror("open failed");
 		return (1);
 	}
-	while (i < 10759)
+	while (i < 2)
 	{
-		line = get_next_line(fd,0);
+		line = get_next_line(fd);
 		if (!line)
 			break ;
 		printf("%s", line);
 		free(line);
 		i++;
 	}
+	get_next_line(-42);
 	close(fd);
 	return (0);
 }
