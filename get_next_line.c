@@ -6,7 +6,7 @@
 /*   By: nildruon <nildruon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/28 11:30:43 by nildruon          #+#    #+#             */
-/*   Updated: 2026/03/10 19:20:54 by nildruon         ###   ########.fr       */
+/*   Updated: 2026/03/11 12:04:13 by nildruon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,14 +76,14 @@ static char	*free_and_return(char **remainder)
 	return (*remainder);
 }
 
-char	*get_next_line(int fd, int quit_before_end)
+char	*get_next_line(int fd)
 {
 	static char	*remainder = NULL;
 	char		*line;
 	int			r;
 
 	r = 1;
-	if (fd < 0 || BUFFER_SIZE <= 0 || quit_before_end)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return(free(remainder), remainder = NULL, NULL);
 	line = NULL;
 	while (!found_new_line(remainder) && r > 0)
